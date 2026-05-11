@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-heading">
+  <div>
+    <p class="eyebrow">관리자</p>
+    <h1>상품 재고와 주문 내역</h1>
+  </div>
+  <div class="heading-actions">
+    <a class="button button-secondary" href="{{ url_for('menu') }}">키오스크 화면</a>
+    <form action="{{ url_for('admin_logout') }}" method="post">
+      <button class="button button-danger" type="submit">로그아웃</button>
+    </form>
+  </div>
+</section>
+
+<section class="sales-dashboard">
+  <article class="chart-panel">
+    <div class="chart-heading">
+      <div>
+        <p class="eyebrow">판매 추이</p>
+        <h2>주문이 많은 시간</h2>
+      </div>
+    </div>
+
+    {% if hourly_order_stats %}
+      <div class="bar-chart">
+        {% for stat in hourly_order_stats %}
+          <div class="bar-row">
+            <span class="bar-label">{{ stat.hour }}시</span>
+            <div class="bar-track">
+              <span class="bar-fill" style="--bar-width: {{ stat.bar_percent }}%;"></span>
+            </div>
+            <strong>{{ stat.order_count }}건</strong>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">아직 시간대별 주문 데이터가 없습니다.</p>
+    {% endif %}
+  </article>
+
+  <article class="chart-panel">
+    <div class="chart-heading">
+      <div>
+        <p class="eyebrow">판매 순위</p>
+        <h2>주문이 많은 메뉴</h2>
+      </div>
+    </div>
+
+    {% if product_sales_stats %}
+      <div class="bar-chart">
+        {% for stat in product_sales_stats %}
+          <div class="bar-row menu-sales-row">
+            <span class="bar-label">
+              {{ stat.name }}
+              {% if stat.is_popular %}
+                <em>인기</em>
+              {% endif %}
+            </span>
+            <div class="bar-track">
+              <span class="bar-fill menu-bar-fill" style="--bar-width: {{ stat.bar_percent }}%;"></span>
+            </div>
+            <strong>{{ stat.sold_quantity }}개</strong>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">아직 메뉴별 판매 데이터가 없습니다.</p>
+    {% endif %}
+  </article>
+</section>
+
+<section class="admin-section">
+  <h2>상품 관리</h2>
+  <div class="admin-table product-admin-table">
+    <div class="admin-head">상품명</div>
+    <div class="admin-head">분류</div>
+    <div class="admin-head">가격</div>
+    <div class="admin-head">재고</div>
+    <div class="admin-head">인기</div>
+    <div class="admin-head">상태</div>
+    <div class="admin-head">저장</div>
+    {% for product in products %}
+      <form class="admin-row" action="{{ url_for('admin_product_update') }}" method="post">
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="text" name="name" value="{{ product.name }}" aria-label="상품명">
+        <input type="text" name="category" value="{{ product.category }}" aria-label="분류">
+        <input type="number" name="price" min="0" step="10" value="{{ product.price }}" aria-label="가격">
+        <input type="number" name="stock" min="0" value="{{ product.stock }}" aria-label="재고">
+        <label class="popular-toggle">
+          <input type="checkbox" name="is_popular" value="1" {% if product.is_popular %}checked{% endif %}>
+          <span>인기</span>
+        </label>
+        <span class="status-pill {% if product.stock <= 0 %}status-out{% else %}status-ok{% endif %}">
+          {{ "품절" if product.stock <= 0 else "판매중" }}
+        </span>
+        <button class="button button-secondary" type="submit">수정</button>
+      </form>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="admin-section">
+  <h2>주문 내역</h2>
+  {% if not orders %}
+    <p class="muted">아직 저장된 주문이 없습니다.</p>
+  {% else %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>주문 번호</th>
+            <th>결제</th>
+            <th>상태</th>
+            <th>상품</th>
+            <th>총액</th>
+            <th>시간</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>#{{ order.id }}</td>
+              <td>{{ "카드" if order.payment_type == "card" else "현금" }}</td>
+              <td>{{ order.status }}</td>
+              <td>{{ order.item_summary }}</td>
+              <td>{{ order.total_price|won }}</td>
+              <td>{{ order.created_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</section>
+
+<section class="admin-section">
+  <h2>키오스크 보유 현금</h2>
+  <div class="cash-grid">
+    {% for unit, count in cash_box.items() %}
+      <div>
+        <span>{{ unit|won }}</span>
+        <strong>{{ count }}개</strong>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

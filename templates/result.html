@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="result-layout">
+  <article class="receipt {% if not result['success'] %}receipt-fail{% endif %}">
+    <div class="receipt-top">
+      <span>{{ "결제 완료" if result['success'] else "결제 실패" }}</span>
+      <h1>{{ result['message'] }}</h1>
+      {% if result['order_id'] %}
+        <p>주문 번호 #{{ result['order_id'] }}</p>
+      {% endif %}
+    </div>
+
+    {% if result['items'] %}
+      <ul class="receipt-items">
+        {% for item in result['items'] %}
+          <li>
+            <span>{{ item.name }} x {{ item.quantity }}</span>
+            <strong>{{ item.subtotal|won }}</strong>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="receipt-row">
+      <span>결제 방식</span>
+      <strong>{{ "카드" if result['payment_type'] == "card" else "현금" if result['payment_type'] == "cash" else "-" }}</strong>
+    </div>
+    <div class="receipt-row">
+      <span>총 금액</span>
+      <strong>{{ result['total_price']|won }}</strong>
+    </div>
+
+    {% if result['payment_type'] == "cash" %}
+      <div class="receipt-row">
+        <span>투입 금액</span>
+        <strong>{{ result['inserted_cash']|won }}</strong>
+      </div>
+      <div class="receipt-row">
+        <span>거스름돈</span>
+        <strong>{{ result['change_amount']|won }}</strong>
+      </div>
+      {% if result['change_result'] %}
+        <div class="change-box">
+          <h2>거스름돈 구성</h2>
+          {% for unit, count in result['change_result'].items() %}
+            <p><span>{{ unit|int|won }}</span><strong>{{ count }}개</strong></p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </article>
+
+  <div class="result-actions">
+    <a class="button button-primary button-large" href="{{ url_for('menu') }}">새 주문 시작</a>
+    {% if not result['success'] %}
+      <a class="button button-secondary button-large" href="{{ url_for('payment') }}">다시 결제</a>
+    {% endif %}
+    <a class="button button-secondary button-large" href="{{ url_for('admin') }}">관리자 확인</a>
+  </div>
+</section>
+{% endblock %}
