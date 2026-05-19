@@ -138,7 +138,7 @@ def get_product_sales_stats(conn=None, limit=8):
         FROM order_items oi
         JOIN orders o ON oi.order_id = o.id
         JOIN products p ON oi.product_id = p.id
-        WHERE o.status = 'paid'
+        WHERE o.status = 'paid' AND p.is_active = 1
         GROUP BY p.id
         ORDER BY sold_quantity DESC, sales_amount DESC, p.id
         LIMIT ?

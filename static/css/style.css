@@ -32,7 +32,8 @@ a {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -382,6 +383,13 @@ button:disabled {
   font-weight: 700;
 }
 
+.payment-kind {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .stock-out,
 .inline-warning {
   color: var(--danger);
@@ -404,7 +412,8 @@ label {
   font-weight: 800;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 48px;
   padding: 0 12px;
@@ -414,7 +423,8 @@ input {
   color: var(--ink);
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: 3px solid rgba(35, 107, 78, 0.18);
   border-color: var(--primary);
 }
@@ -762,7 +772,7 @@ input:focus {
 
 .admin-table {
   display: grid;
-  grid-template-columns: minmax(170px, 1.4fr) minmax(90px, 0.7fr) minmax(90px, 0.7fr) minmax(74px, 0.55fr) minmax(78px, 0.55fr) minmax(80px, 0.6fr) minmax(70px, 0.5fr);
+  grid-template-columns: minmax(150px, 1.25fr) minmax(78px, 0.6fr) minmax(86px, 0.65fr) minmax(96px, 0.72fr) minmax(74px, 0.55fr) minmax(78px, 0.55fr) minmax(86px, 0.62fr) minmax(70px, 0.5fr);
   gap: 8px;
   align-items: center;
 }
@@ -778,6 +788,7 @@ input:focus {
 }
 
 .admin-row input,
+.admin-row select,
 .admin-row .status-pill,
 .admin-row .popular-toggle,
 .admin-row button {
@@ -941,4 +952,73 @@ th {
   .button {
     width: 100%;
   }
+}
+
+
+.tag-layout {
+  min-height: calc(100vh - 180px);
+  display: grid;
+  place-items: center;
+}
+
+.tag-panel {
+  width: min(560px, 100%);
+  padding: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.tag-panel h1 {
+  margin: 0 0 10px;
+  font-size: 32px;
+}
+
+.tag-panel p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.tag-summary {
+  margin: 22px 0;
+  padding: 18px;
+  border-radius: 8px;
+  background: #f2f6ef;
+}
+
+.tag-summary h2,
+.tag-summary strong,
+.tag-summary span {
+  display: block;
+}
+
+.tag-summary h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.tag-summary strong {
+  font-size: 24px;
+}
+
+.tag-summary span {
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.tag-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+}
+
+.tag-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
 }

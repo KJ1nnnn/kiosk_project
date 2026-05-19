@@ -8,6 +8,7 @@ class Product:
     category: str
     price: int
     stock: int
+    item_type: str = "purchase"
     image: str = ""
 
 

@@ -14,7 +14,7 @@ def conn():
     connection.execute(
         """
         INSERT INTO products (name, category, price, stock, image, created_at)
-        VALUES ('테스트 음료', '음료', 1000, 10, '', '2026-05-11T00:00:00')
+        VALUES ('테스트 물품', '테스트', 1000, 10, '', '2026-05-11T00:00:00')
         """
     )
     connection.commit()
@@ -50,11 +50,11 @@ def test_is_sold_out_when_stock_is_zero(conn):
     assert product_service.is_sold_out(product["id"], conn=conn) is True
 
 
-def test_update_product_can_mark_popular_menu(conn):
+def test_update_product_can_mark_popular_item(conn):
     product = product_service.get_all_products(conn=conn)[0]
 
     success = product_service.update_product(
-        product["id"], "테스트 음료", "음료", 1000, 10, is_popular=True, conn=conn
+        product["id"], "테스트 물품", "테스트", 1000, 10, is_popular=True, conn=conn
     )
     updated = product_service.get_product_by_id(product["id"], conn=conn)
 

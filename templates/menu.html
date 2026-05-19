@@ -3,8 +3,8 @@
 {% block content %}
 <section class="section-heading">
   <div>
-    <p class="eyebrow">상품 선택</p>
-    <h1>원하는 상품을 장바구니에 담으세요</h1>
+    <p class="eyebrow">학습 도구 선택</p>
+    <h1>필요한 물품을 대여하거나 구매하세요</h1>
   </div>
   <a class="button button-primary" href="{{ url_for('cart') }}">장바구니 {{ cart_count }}개</a>
 </section>
@@ -14,7 +14,7 @@
     {% set sold_out = product.stock <= 0 %}
     <article class="product-card {% if sold_out %}is-sold-out{% endif %} {% if product.is_popular %}is-popular{% endif %}">
       {% if product.is_popular %}
-        <div class="popular-ribbon">인기 메뉴</div>
+        <div class="popular-ribbon">인기 물품</div>
       {% endif %}
       <div class="product-visual">
         {% if product.image %}
@@ -27,6 +27,9 @@
         <span class="category">{{ product.category }}</span>
         <h2>{{ product.name }}</h2>
         <p class="price">{{ product.price|won }}</p>
+        <p class="payment-kind">
+          {{ "반납 시 반환되는 보증금" if product.item_type == "rental" else "구매 가격" }}
+        </p>
         <p class="stock {% if sold_out %}stock-out{% endif %}">
           {% if sold_out %}
             품절
@@ -42,7 +45,7 @@
           <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" {% if sold_out %}disabled{% endif %}>
         </label>
         <button class="button button-primary" type="submit" {% if sold_out %}disabled{% endif %}>
-          담기
+          선택
         </button>
       </form>
     </article>

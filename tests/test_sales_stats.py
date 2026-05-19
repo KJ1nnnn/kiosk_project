@@ -14,12 +14,12 @@ def conn():
     connection.executemany(
         """
         INSERT INTO products
-            (name, category, price, stock, image, is_popular, created_at)
-        VALUES (?, ?, ?, ?, '', ?, '2026-05-11T00:00:00')
+            (name, category, price, stock, image, item_type, is_popular, created_at)
+        VALUES (?, ?, ?, ?, '', ?, ?, '2026-05-11T00:00:00')
         """,
         [
-            ("생수", "음료", 900, 20, 1),
-            ("컵라면", "식사", 2500, 10, 0),
+            ("무선 마우스", "대여", 5000, 20, "rental", 1),
+            ("필기구 세트", "구매", 2500, 10, "purchase", 0),
         ],
     )
     connection.commit()
@@ -55,20 +55,31 @@ def test_order_count_by_hour(conn):
 
 
 def test_product_sales_stats_orders_by_quantity(conn):
-    products = product_service.get_all_products(conn=conn)
+    products = {
+        product["name"]: product
+        for product in product_service.get_all_products(conn=conn)
+    }
     order_service.create_order(
         [
-            {"product_id": products[0]["id"], "quantity": 1, "price": 900},
-            {"product_id": products[1]["id"], "quantity": 3, "price": 2500},
+            {
+                "product_id": products["무선 마우스"]["id"],
+                "quantity": 1,
+                "price": 5000,
+            },
+            {
+                "product_id": products["필기구 세트"]["id"],
+                "quantity": 3,
+                "price": 2500,
+            },
         ],
         "card",
-        8400,
+        12500,
         conn=conn,
     )
 
     stats = order_service.get_product_sales_stats(conn=conn)
 
-    assert stats[0]["name"] == "컵라면"
+    assert stats[0]["name"] == "필기구 세트"
     assert stats[0]["sold_quantity"] == 3
-    assert stats[1]["name"] == "생수"
+    assert stats[1]["name"] == "무선 마우스"
     assert stats[1]["is_popular"] == 1

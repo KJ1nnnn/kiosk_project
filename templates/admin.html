@@ -4,7 +4,7 @@
 <section class="section-heading">
   <div>
     <p class="eyebrow">관리자</p>
-    <h1>상품 재고와 주문 내역</h1>
+    <h1>학습 도구 재고와 이용 내역</h1>
   </div>
   <div class="heading-actions">
     <a class="button button-secondary" href="{{ url_for('menu') }}">키오스크 화면</a>
@@ -18,8 +18,8 @@
   <article class="chart-panel">
     <div class="chart-heading">
       <div>
-        <p class="eyebrow">판매 추이</p>
-        <h2>주문이 많은 시간</h2>
+        <p class="eyebrow">이용 추이</p>
+        <h2>이용이 많은 시간</h2>
       </div>
     </div>
 
@@ -36,15 +36,15 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="muted">아직 시간대별 주문 데이터가 없습니다.</p>
+      <p class="muted">아직 시간대별 이용 데이터가 없습니다.</p>
     {% endif %}
   </article>
 
   <article class="chart-panel">
     <div class="chart-heading">
       <div>
-        <p class="eyebrow">판매 순위</p>
-        <h2>주문이 많은 메뉴</h2>
+        <p class="eyebrow">이용 순위</p>
+        <h2>선택이 많은 물품</h2>
       </div>
     </div>
 
@@ -66,17 +66,18 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="muted">아직 메뉴별 판매 데이터가 없습니다.</p>
+      <p class="muted">아직 물품별 이용 데이터가 없습니다.</p>
     {% endif %}
   </article>
 </section>
 
 <section class="admin-section">
-  <h2>상품 관리</h2>
+  <h2>물품 관리</h2>
   <div class="admin-table product-admin-table">
-    <div class="admin-head">상품명</div>
+    <div class="admin-head">물품명</div>
     <div class="admin-head">분류</div>
-    <div class="admin-head">가격</div>
+    <div class="admin-head">유형</div>
+    <div class="admin-head">가격/보증금</div>
     <div class="admin-head">재고</div>
     <div class="admin-head">인기</div>
     <div class="admin-head">상태</div>
@@ -84,16 +85,20 @@
     {% for product in products %}
       <form class="admin-row" action="{{ url_for('admin_product_update') }}" method="post">
         <input type="hidden" name="product_id" value="{{ product.id }}">
-        <input type="text" name="name" value="{{ product.name }}" aria-label="상품명">
+        <input type="text" name="name" value="{{ product.name }}" aria-label="물품명">
         <input type="text" name="category" value="{{ product.category }}" aria-label="분류">
-        <input type="number" name="price" min="0" step="10" value="{{ product.price }}" aria-label="가격">
+        <select name="item_type" aria-label="유형">
+          <option value="rental" {% if product.item_type == "rental" %}selected{% endif %}>대여</option>
+          <option value="purchase" {% if product.item_type == "purchase" %}selected{% endif %}>구매</option>
+        </select>
+        <input type="number" name="price" min="0" step="10" value="{{ product.price }}" aria-label="가격 또는 보증금">
         <input type="number" name="stock" min="0" value="{{ product.stock }}" aria-label="재고">
         <label class="popular-toggle">
           <input type="checkbox" name="is_popular" value="1" {% if product.is_popular %}checked{% endif %}>
           <span>인기</span>
         </label>
         <span class="status-pill {% if product.stock <= 0 %}status-out{% else %}status-ok{% endif %}">
-          {{ "품절" if product.stock <= 0 else "판매중" }}
+          {{ "품절" if product.stock <= 0 else "이용 가능" }}
         </span>
         <button class="button button-secondary" type="submit">수정</button>
       </form>
@@ -102,18 +107,18 @@
 </section>
 
 <section class="admin-section">
-  <h2>주문 내역</h2>
+  <h2>이용 내역</h2>
   {% if not orders %}
-    <p class="muted">아직 저장된 주문이 없습니다.</p>
+    <p class="muted">아직 저장된 이용 내역이 없습니다.</p>
   {% else %}
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>주문 번호</th>
+            <th>이용 번호</th>
             <th>결제</th>
             <th>상태</th>
-            <th>상품</th>
+            <th>물품</th>
             <th>총액</th>
             <th>시간</th>
           </tr>

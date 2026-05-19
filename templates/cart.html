@@ -4,16 +4,16 @@
 <section class="section-heading">
   <div>
     <p class="eyebrow">장바구니</p>
-    <h1>선택한 상품 확인</h1>
+    <h1>선택한 물품 확인</h1>
   </div>
-  <a class="button button-secondary" href="{{ url_for('menu') }}">상품 더 담기</a>
+  <a class="button button-secondary" href="{{ url_for('menu') }}">물품 더 선택</a>
 </section>
 
 {% if not items %}
   <section class="empty-state">
     <h2>장바구니가 비어 있습니다</h2>
-    <p>상품 화면에서 원하는 메뉴를 먼저 선택하세요.</p>
-    <a class="button button-primary button-large" href="{{ url_for('menu') }}">상품 보러 가기</a>
+    <p>학습 도구 화면에서 필요한 물품을 먼저 선택하세요.</p>
+    <a class="button button-primary button-large" href="{{ url_for('menu') }}">물품 보러 가기</a>
   </section>
 {% else %}
   <section class="cart-list">
@@ -22,7 +22,7 @@
         <div>
           <span class="category">{{ item.category }}</span>
           <h2>{{ item.name }}</h2>
-          <p>{{ item.price|won }} · 현재 재고 {{ item.stock }}개</p>
+          <p>{{ item.payment_label }} {{ item.price|won }} · 현재 재고 {{ item.stock }}개</p>
           {% if item.stock_warning %}
             <p class="inline-warning">선택 수량이 현재 재고보다 많습니다.</p>
           {% endif %}
@@ -43,7 +43,7 @@
 
   <section class="checkout-bar">
     <div>
-      <span>총 결제 금액</span>
+      <span>총 결제 금액 {% if items|selectattr('is_rental')|list %}(대여 보증금 포함){% endif %}</span>
       <strong>{{ total_price|won }}</strong>
     </div>
     {% if can_checkout %}

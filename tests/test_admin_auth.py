@@ -36,7 +36,7 @@ def test_admin_login_accepts_password_0000():
         )
 
     assert response.status_code == 200
-    assert "상품 재고와 주문 내역".encode() in response.data
+    assert "학습 도구 재고와 이용 내역".encode() in response.data
 
 
 def test_admin_product_update_requires_password():

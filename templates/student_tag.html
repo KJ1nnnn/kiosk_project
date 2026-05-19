@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="tag-layout">
+  <article class="tag-panel">
+    <p class="eyebrow">학생증 확인</p>
+    <h1>대여 물품 이용 전 학생증을 태그하세요</h1>
+    <p>
+      대여 물품은 학생증 확인 후 이용할 수 있습니다. 실제 카드 리더기는 없으므로
+      아래 버튼을 누르면 태그 완료로 처리됩니다.
+    </p>
+
+    <div class="tag-summary">
+      <h2>대여 보증금</h2>
+      <strong>{{ rental_deposit|won }}</strong>
+      <span>반납 시 반환되는 금액입니다.</span>
+    </div>
+
+    <ul class="tag-list">
+      {% for item in items %}
+        {% if item.is_rental %}
+          <li>
+            <span>{{ item.name }} x {{ item.quantity }}</span>
+            <strong>{{ item.subtotal|won }}</strong>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+    <form action="{{ url_for('rental_student_id') }}" method="post">
+      <button class="button button-primary button-large" type="submit">학생증 태그 완료</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

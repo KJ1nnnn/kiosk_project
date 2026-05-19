@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Campus Kiosk Simulator</title>
+    <title>Campus Tool Kiosk</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
   </head>
@@ -12,13 +12,14 @@
       <a class="brand" href="{{ url_for('index') }}">
         <span class="brand-mark">K</span>
         <span>
-          <strong>Campus Kiosk</strong>
-          <small>1층 로컬 시뮬레이터</small>
+          <strong>Campus Tool Kiosk</strong>
+          <small>학습 도구 대여·구매</small>
         </span>
       </a>
       <nav class="nav">
-        <a href="{{ url_for('menu') }}">상품</a>
+        <a href="{{ url_for('menu') }}">대여·구매</a>
         <a href="{{ url_for('cart') }}">장바구니</a>
+        <a href="{{ url_for('return_item') }}">반납</a>
         <a href="{{ url_for('admin') }}">관리자</a>
       </nav>
     </header>

@@ -43,6 +43,22 @@ def get_safe_next_url():
     return url_for("admin")
 
 
+def is_rental_item(item):
+    return item.get("item_type") == "rental"
+
+
+def has_rental_items(items):
+    return any(is_rental_item(item) for item in items)
+
+
+def rental_deposit_total(items):
+    return sum(item["subtotal"] for item in items if is_rental_item(item))
+
+
+def needs_rental_student_tag(items):
+    return has_rental_items(items) and not session.get("rental_student_tagged")
+
+
 def build_cart_items(conn=None):
     cart = get_cart()
     cleaned_cart = {}
@@ -58,6 +74,7 @@ def build_cart_items(conn=None):
         stock = int(product["stock"])
         price = int(product["price"])
         subtotal = price * quantity
+        item_type = product.get("item_type", "purchase")
 
         items.append(
             {
@@ -68,6 +85,9 @@ def build_cart_items(conn=None):
                 "quantity": quantity,
                 "stock": stock,
                 "subtotal": subtotal,
+                "item_type": item_type,
+                "is_rental": item_type == "rental",
+                "payment_label": "보증금" if item_type == "rental" else "가격",
                 "stock_warning": stock <= 0 or quantity > stock,
             }
         )
@@ -105,6 +125,8 @@ def save_result(
     inserted_cash=0,
     change_amount=0,
     change_result=None,
+    contains_rental=False,
+    rental_deposit=0,
 ):
     session["last_result"] = {
         "success": success,
@@ -116,6 +138,8 @@ def save_result(
         "inserted_cash": int(inserted_cash or 0),
         "change_amount": int(change_amount or 0),
         "change_result": change_result or {},
+        "contains_rental": contains_rental,
+        "rental_deposit": int(rental_deposit or 0),
     }
     session.modified = True
 
@@ -149,12 +173,12 @@ def add_to_cart():
     product = product_service.get_product_by_id(product_id)
 
     if product is None:
-        flash("존재하지 않는 상품입니다.", "error")
+        flash("존재하지 않는 물품입니다.", "error")
         return redirect(url_for("menu"))
 
     stock = int(product["stock"])
     if stock <= 0:
-        flash(f"{product['name']} 상품은 품절입니다.", "error")
+        flash(f"{product['name']} 물품은 품절입니다.", "error")
         return redirect(url_for("menu"))
 
     cart = get_cart()
@@ -163,12 +187,13 @@ def add_to_cart():
 
     if new_quantity > stock:
         cart[str(product_id)] = stock
-        flash(f"{product['name']} 재고는 {stock}개까지 담을 수 있습니다.", "warning")
+        flash(f"{product['name']} 재고는 {stock}개까지 선택할 수 있습니다.", "warning")
     else:
         cart[str(product_id)] = new_quantity
-        flash(f"{product['name']} 상품을 장바구니에 담았습니다.", "success")
+        flash(f"{product['name']} 물품을 장바구니에 담았습니다.", "success")
 
     save_cart(cart)
+    session.pop("rental_student_tagged", None)
     return redirect(url_for("menu"))
 
 
@@ -192,21 +217,24 @@ def update_cart():
     if action == "remove":
         cart.pop(str(product_id), None)
         save_cart(cart)
-        flash("상품을 장바구니에서 삭제했습니다.", "success")
+        session.pop("rental_student_tagged", None)
+        flash("물품을 장바구니에서 삭제했습니다.", "success")
         return redirect(url_for("cart"))
 
     product = product_service.get_product_by_id(product_id)
     if product is None:
         cart.pop(str(product_id), None)
         save_cart(cart)
-        flash("존재하지 않는 상품을 장바구니에서 삭제했습니다.", "warning")
+        session.pop("rental_student_tagged", None)
+        flash("존재하지 않는 물품을 장바구니에서 삭제했습니다.", "warning")
         return redirect(url_for("cart"))
 
     stock = int(product["stock"])
     if stock <= 0:
         cart.pop(str(product_id), None)
         save_cart(cart)
-        flash(f"{product['name']} 상품은 품절되어 장바구니에서 삭제했습니다.", "warning")
+        session.pop("rental_student_tagged", None)
+        flash(f"{product['name']} 물품은 품절되어 장바구니에서 삭제했습니다.", "warning")
         return redirect(url_for("cart"))
 
     quantity = max(1, parse_int(request.form.get("quantity"), default=1))
@@ -218,6 +246,7 @@ def update_cart():
 
     cart[str(product_id)] = quantity
     save_cart(cart)
+    session.pop("rental_student_tagged", None)
     return redirect(url_for("cart"))
 
 
@@ -230,7 +259,35 @@ def payment():
     if not can_checkout:
         flash("재고를 확인한 뒤 결제할 수 있습니다.", "warning")
         return redirect(url_for("cart"))
+    if needs_rental_student_tag(items):
+        return redirect(url_for("rental_student_id"))
     return render_template("payment.html", items=items, total_price=total_price)
+
+
+@app.route("/rental/student-id", methods=["GET", "POST"])
+def rental_student_id():
+    items, total_price, can_checkout = build_cart_items()
+    if not items:
+        flash("장바구니가 비어 있습니다.", "warning")
+        return redirect(url_for("menu"))
+    if not can_checkout:
+        flash("재고를 확인한 뒤 결제할 수 있습니다.", "warning")
+        return redirect(url_for("cart"))
+    if not has_rental_items(items):
+        return redirect(url_for("payment"))
+
+    if request.method == "POST":
+        session["rental_student_tagged"] = True
+        session.modified = True
+        flash("학생증 태그가 확인되었습니다.", "success")
+        return redirect(url_for("payment"))
+
+    return render_template(
+        "student_tag.html",
+        items=items,
+        total_price=total_price,
+        rental_deposit=rental_deposit_total(items),
+    )
 
 
 @app.route("/payment/card", methods=["POST"])
@@ -245,6 +302,10 @@ def payment_card():
             conn.rollback()
             flash(stock_message or "장바구니가 비어 있습니다.", "error")
             return redirect(url_for("cart"))
+        if needs_rental_student_tag(items):
+            conn.rollback()
+            flash("대여 물품은 학생증 태그가 먼저 필요합니다.", "warning")
+            return redirect(url_for("rental_student_id"))
 
         payment_result = payment_service.process_card_payment(total_price)
         if not payment_result["success"]:
@@ -258,18 +319,26 @@ def payment_card():
             )
             return redirect(url_for("result"))
 
+        contains_rental = has_rental_items(items)
+        success_message = payment_result["message"]
+        if contains_rental:
+            success_message = "결제와 대여 접수가 완료되었습니다."
+
         order_id = create_paid_order(items, "card", total_price, conn=conn)
         conn.commit()
 
         save_result(
             True,
-            payment_result["message"],
+            success_message,
             items=items,
             total_price=total_price,
             payment_type="card",
             order_id=order_id,
+            contains_rental=contains_rental,
+            rental_deposit=rental_deposit_total(items),
         )
         session.pop("cart", None)
+        session.pop("rental_student_tagged", None)
         return redirect(url_for("result"))
     except Exception as error:
         conn.rollback()
@@ -296,6 +365,10 @@ def payment_cash():
             conn.rollback()
             flash(stock_message or "장바구니가 비어 있습니다.", "error")
             return redirect(url_for("cart"))
+        if needs_rental_student_tag(items):
+            conn.rollback()
+            flash("대여 물품은 학생증 태그가 먼저 필요합니다.", "warning")
+            return redirect(url_for("rental_student_id"))
 
         payment_result = payment_service.process_cash_payment(
             total_price, inserted_cash, conn=conn
@@ -314,12 +387,17 @@ def payment_cash():
             )
             return redirect(url_for("result"))
 
+        contains_rental = has_rental_items(items)
+        success_message = payment_result["message"]
+        if contains_rental:
+            success_message = "현금 결제와 대여 접수가 완료되었습니다."
+
         order_id = create_paid_order(items, "cash", total_price, conn=conn)
         conn.commit()
 
         save_result(
             True,
-            payment_result["message"],
+            success_message,
             items=items,
             total_price=total_price,
             payment_type="cash",
@@ -327,8 +405,11 @@ def payment_cash():
             inserted_cash=inserted_cash,
             change_amount=payment_result["change_amount"],
             change_result=payment_result["change_result"],
+            contains_rental=contains_rental,
+            rental_deposit=rental_deposit_total(items),
         )
         session.pop("cart", None)
+        session.pop("rental_student_tagged", None)
         return redirect(url_for("result"))
     except Exception as error:
         conn.rollback()
@@ -344,6 +425,28 @@ def result():
     if last_result is None:
         return redirect(url_for("menu"))
     return render_template("result.html", result=last_result)
+
+
+@app.route("/return")
+def return_item():
+    return render_template("return.html")
+
+
+@app.route("/return/student-id", methods=["POST"])
+def return_student_id():
+    session["last_return_result"] = {
+        "success": True,
+        "message": "학생증 확인이 완료되었습니다.",
+    }
+    session.modified = True
+    return redirect(url_for("return_result"))
+
+
+@app.route("/return/result")
+def return_result():
+    return render_template(
+        "return_result.html", result=session.get("last_return_result")
+    )
 
 
 @app.route("/admin")
@@ -407,18 +510,19 @@ def admin_product_update():
     price = parse_int(request.form.get("price"), default=-1)
     stock = parse_int(request.form.get("stock"), default=-1)
     is_popular = request.form.get("is_popular") == "1"
+    item_type = request.form.get("item_type", "purchase")
 
     if not name or price < 0 or stock < 0:
-        flash("상품명, 가격, 재고를 올바르게 입력하세요.", "error")
+        flash("물품명, 가격, 재고를 올바르게 입력하세요.", "error")
         return redirect(url_for("admin"))
 
     updated = product_service.update_product(
-        product_id, name, category, price, stock, is_popular
+        product_id, name, category, price, stock, is_popular, item_type=item_type
     )
     if updated:
-        flash("상품 정보를 수정했습니다.", "success")
+        flash("물품 정보를 수정했습니다.", "success")
     else:
-        flash("상품 수정에 실패했습니다.", "error")
+        flash("물품 수정에 실패했습니다.", "error")
 
     return redirect(url_for("admin"))
 

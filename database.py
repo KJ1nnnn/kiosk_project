@@ -21,59 +21,51 @@ DEFAULT_CASH_BOX = {
 
 DEFAULT_PRODUCTS = [
     {
-        "name": "아이스 아메리카노",
-        "category": "음료",
-        "price": 1800,
-        "stock": 12,
-        "image": "",
-    },
-    {
-        "name": "딸기 우유",
-        "category": "음료",
-        "price": 1500,
-        "stock": 10,
-        "image": "",
-    },
-    {
-        "name": "생수",
-        "category": "음료",
-        "price": 900,
-        "stock": 20,
-        "image": "",
-    },
-    {
-        "name": "삼각김밥",
-        "category": "간식",
-        "price": 1700,
+        "name": "무선 마우스",
+        "category": "대여",
+        "price": 5000,
         "stock": 8,
+        "item_type": "rental",
         "image": "",
     },
     {
-        "name": "햄치즈 샌드위치",
-        "category": "식사",
-        "price": 3200,
+        "name": "무선 키보드",
+        "category": "대여",
+        "price": 7000,
         "stock": 6,
+        "item_type": "rental",
         "image": "",
     },
     {
-        "name": "컵라면",
-        "category": "식사",
-        "price": 2500,
-        "stock": 9,
+        "name": "독서대",
+        "category": "대여",
+        "price": 3000,
+        "stock": 10,
+        "item_type": "rental",
         "image": "",
     },
     {
-        "name": "초코바",
-        "category": "간식",
+        "name": "담요",
+        "category": "대여",
+        "price": 4000,
+        "stock": 12,
+        "item_type": "rental",
+        "image": "",
+    },
+    {
+        "name": "일회용 칫솔 세트",
+        "category": "구매",
         "price": 1200,
-        "stock": 15,
+        "stock": 30,
+        "item_type": "purchase",
         "image": "",
     },
     {
-        "name": "핫도그",
-        "category": "간식",
-        "price": 2800,
-        "stock": 5,
+        "name": "필기구 세트",
+        "category": "구매",
+        "price": 2500,
+        "stock": 25,
+        "item_type": "purchase",
         "image": "",
     },
 ]
@@ -88,7 +80,7 @@ def get_db_connection(db_path=None):
 
 
 def init_db(db_path=None, conn=None, seed=True):
-    """테이블을 만들고 필요하면 기본 상품과 현금 보유량을 넣는다."""
+    """테이블을 만들고 필요하면 기본 물품과 현금 보유량을 넣는다."""
     owns_connection = conn is None
     conn = conn or get_db_connection(db_path)
 
@@ -101,7 +93,9 @@ def init_db(db_path=None, conn=None, seed=True):
             price INTEGER NOT NULL,
             stock INTEGER NOT NULL,
             image TEXT,
+            item_type TEXT NOT NULL DEFAULT 'purchase',
             is_popular INTEGER NOT NULL DEFAULT 0,
+            is_active INTEGER NOT NULL DEFAULT 1,
             created_at TEXT
         );
 
@@ -150,25 +144,19 @@ def ensure_schema_migrations(conn):
         conn.execute(
             "ALTER TABLE products ADD COLUMN is_popular INTEGER NOT NULL DEFAULT 0"
         )
+    if "item_type" not in product_columns:
+        conn.execute(
+            "ALTER TABLE products ADD COLUMN item_type TEXT NOT NULL DEFAULT 'purchase'"
+        )
+    if "is_active" not in product_columns:
+        conn.execute(
+            "ALTER TABLE products ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1"
+        )
 
 
 def seed_database(conn):
-    product_count = conn.execute("SELECT COUNT(*) FROM products").fetchone()[0]
     now = datetime.now().isoformat(timespec="seconds")
-
-    if product_count == 0:
-        conn.executemany(
-            """
-            INSERT INTO products
-                (name, category, price, stock, image, is_popular, created_at)
-            VALUES
-                (:name, :category, :price, :stock, :image, :is_popular, :created_at)
-            """,
-            [
-                {**product, "is_popular": 0, "created_at": now}
-                for product in DEFAULT_PRODUCTS
-            ],
-        )
+    sync_default_products(conn, now)
 
     cash_count = conn.execute("SELECT COUNT(*) FROM cash_box").fetchone()[0]
     if cash_count == 0:
@@ -176,3 +164,45 @@ def seed_database(conn):
             "INSERT INTO cash_box (money_unit, count) VALUES (?, ?)",
             DEFAULT_CASH_BOX.items(),
         )
+
+
+def sync_default_products(conn, now):
+    default_names = [product["name"] for product in DEFAULT_PRODUCTS]
+    placeholders = ",".join("?" for _ in default_names)
+
+    conn.execute(
+        f"UPDATE products SET is_active = 0 WHERE name NOT IN ({placeholders})",
+        default_names,
+    )
+
+    for product in DEFAULT_PRODUCTS:
+        row = conn.execute(
+            "SELECT id FROM products WHERE name = ?", (product["name"],)
+        ).fetchone()
+        if row is None:
+            conn.execute(
+                """
+                INSERT INTO products
+                    (name, category, price, stock, image, item_type, is_popular,
+                     is_active, created_at)
+                VALUES
+                    (:name, :category, :price, :stock, :image, :item_type,
+                     :is_popular, 1, :created_at)
+                """,
+                {**product, "is_popular": 0, "created_at": now},
+            )
+        else:
+            conn.execute(
+                """
+                UPDATE products
+                SET category = ?, price = ?, image = ?, item_type = ?, is_active = 1
+                WHERE id = ?
+                """,
+                (
+                    product["category"],
+                    product["price"],
+                    product["image"],
+                    product["item_type"],
+                    row["id"],
+                ),
+            )

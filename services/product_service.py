@@ -11,8 +11,10 @@ def get_all_products(conn=None):
 
     rows = conn.execute(
         """
-        SELECT id, name, category, price, stock, image, is_popular, created_at
+        SELECT id, name, category, price, stock, image, item_type, is_popular,
+               created_at
         FROM products
+        WHERE is_active = 1
         ORDER BY is_popular DESC, category, id
         """
     ).fetchall()
@@ -30,9 +32,10 @@ def get_product_by_id(product_id, conn=None):
 
     row = conn.execute(
         """
-        SELECT id, name, category, price, stock, image, is_popular, created_at
+        SELECT id, name, category, price, stock, image, item_type, is_popular,
+               created_at
         FROM products
-        WHERE id = ?
+        WHERE id = ? AND is_active = 1
         """,
         (int(product_id),),
     ).fetchone()
@@ -102,14 +105,16 @@ def update_stock(product_id, new_stock, conn=None):
     return cursor.rowcount > 0
 
 
-def update_product(product_id, name, category, price, stock, is_popular=False, conn=None):
+def update_product(
+    product_id, name, category, price, stock, is_popular=False, item_type="purchase", conn=None
+):
     owns_connection = conn is None
     conn = conn or get_db_connection()
 
     cursor = conn.execute(
         """
         UPDATE products
-        SET name = ?, category = ?, price = ?, stock = ?, is_popular = ?
+        SET name = ?, category = ?, price = ?, stock = ?, item_type = ?, is_popular = ?
         WHERE id = ?
         """,
         (
@@ -117,6 +122,7 @@ def update_product(product_id, name, category, price, stock, is_popular=False, c
             category.strip(),
             max(0, int(price)),
             max(0, int(stock)),
+            item_type if item_type in {"rental", "purchase"} else "purchase",
             1 if is_popular else 0,
             int(product_id),
         ),
@@ -149,9 +155,9 @@ def validate_cart_stock(cart_items, conn=None):
     for item in cart_items:
         product = get_product_by_id(item["product_id"], conn=conn)
         if product is None:
-            return False, "장바구니에 존재하지 않는 상품이 있습니다."
+            return False, "장바구니에 존재하지 않는 물품이 있습니다."
         if int(product["stock"]) <= 0:
-            return False, f"{product['name']} 상품은 품절입니다."
+            return False, f"{product['name']} 물품은 품절입니다."
         if int(product["stock"]) < int(item["quantity"]):
             return (
                 False,
