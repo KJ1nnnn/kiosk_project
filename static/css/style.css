@@ -1,17 +1,17 @@
 :root {
-  --bg: #f5f7f0;
+  --bg: #eef6ff;
   --surface: #ffffff;
-  --ink: #1d2b2a;
-  --muted: #60706d;
-  --line: #dbe2da;
-  --primary: #236b4e;
-  --primary-dark: #174934;
-  --accent: #f3b33d;
+  --ink: #10233f;
+  --muted: #5d718c;
+  --line: #d7e6f7;
+  --primary: #2563eb;
+  --primary-dark: #1746a2;
+  --accent: #38bdf8;
   --danger: #b83a32;
   --danger-soft: #f8dedb;
-  --success-soft: #dff3e8;
-  --warning-soft: #fff1c7;
-  --shadow: 0 12px 30px rgba(29, 43, 42, 0.1);
+  --success-soft: #dff7ee;
+  --warning-soft: #fff4c7;
+  --shadow: 0 12px 30px rgba(16, 35, 63, 0.12);
 }
 
 * {
@@ -93,7 +93,7 @@ select {
 }
 
 .nav a:hover {
-  background: #edf3eb;
+  background: #e7f1ff;
   color: var(--ink);
 }
 
@@ -156,12 +156,12 @@ select {
 }
 
 .button-secondary {
-  background: #e9efe7;
+  background: #e6f0ff;
   color: var(--ink);
 }
 
 .button-secondary:hover {
-  background: #dfe8dc;
+  background: #d4e6ff;
 }
 
 .button-danger {
