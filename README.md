@@ -18,7 +18,7 @@ Python Flask, SQLite, Jinja2를 사용한 학교 1층 학습 도구 키오스크
 | Python | 58.5% | `app.py`의 Flask 라우팅, `database.py`의 SQLite 초기화, `services/`의 결제·잔돈·재고·주문 처리, `tests/`의 pytest 테스트에 사용 |
 | HTML | 22.9% | `templates/`의 Jinja2 템플릿에서 메인 화면, 물품 선택, 장바구니, 결제, 학생증 태그, 반납, 관리자 화면 구성에 사용 |
 | CSS | 18.0% | `static/css/style.css`에서 파란색 키오스크 테마, 터치형 버튼, 카드형 물품 목록, 관리자 표와 그래프 스타일에 사용 |
-| JavaScript | 0.6% | `static/js/script.js`에서 수량 입력값이 최소·최대 범위를 벗어나지 않도록 보정하는 간단한 동작에 사용 |
+| JavaScript | 0.6% | `static/js/script.js`에서 수량 입력값이 최소·최대 범위를 벗어나지 않도록 보정하는 간단한 동작에 사용 사용자가 현재 재고보다 많은 수량을 입력했을때 즉시 수량을 줄여주는 동작을 브라우저에서 구현하기 위해 사용|
 
 ## 주요 기능
 
