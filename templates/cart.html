@@ -22,7 +22,7 @@
         <div>
           <span class="category">{{ item.category }}</span>
           <h2>{{ item.name }}</h2>
-          <p>{{ item.payment_label }} {{ item.price|won }} · 현재 재고 {{ item.stock }}개</p>
+          <p>{{ item.payment_label }} {{ item.price|won }} · 남은 재고 {{ item.display_stock }}개</p>
           {% if item.stock_warning %}
             <p class="inline-warning">선택 수량이 현재 재고보다 많습니다.</p>
           {% endif %}

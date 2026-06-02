@@ -7,6 +7,10 @@ from services import change_service, order_service, payment_service, product_ser
 app = Flask(__name__)
 app.secret_key = "campus-kiosk-dev-secret"
 ADMIN_PASSWORD = "0000"
+MENU_TAB_LABELS = {
+    "rental": "대여",
+    "purchase": "구매",
+}
 
 init_db()
 
@@ -59,6 +63,50 @@ def needs_rental_student_tag(items):
     return has_rental_items(items) and not session.get("rental_student_tagged")
 
 
+def normalize_menu_type(value):
+    return value if value in MENU_TAB_LABELS else "rental"
+
+
+def build_menu_tabs(products, selected_item_type):
+    return [
+        {
+            "key": item_type,
+            "label": label,
+            "count": sum(
+                1 for product in products if product.get("item_type") == item_type
+            ),
+            "active": item_type == selected_item_type,
+        }
+        for item_type, label in MENU_TAB_LABELS.items()
+    ]
+
+
+def get_cart_quantity(product_id, cart=None):
+    cart = cart or get_cart()
+    return max(0, parse_int(cart.get(str(product_id)), default=0))
+
+
+def remaining_stock_after_cart(stock, cart_quantity):
+    return max(0, int(stock) - int(cart_quantity))
+
+
+def build_menu_products(products, cart=None):
+    cart = cart or get_cart()
+    menu_products = []
+
+    for product in products:
+        product = dict(product)
+        cart_quantity = get_cart_quantity(product["id"], cart)
+        product["database_stock"] = int(product["stock"])
+        product["cart_quantity"] = cart_quantity
+        product["display_stock"] = remaining_stock_after_cart(
+            product["stock"], cart_quantity
+        )
+        menu_products.append(product)
+
+    return menu_products
+
+
 def build_cart_items(conn=None):
     cart = get_cart()
     cleaned_cart = {}
@@ -84,6 +132,7 @@ def build_cart_items(conn=None):
                 "price": price,
                 "quantity": quantity,
                 "stock": stock,
+                "display_stock": remaining_stock_after_cart(stock, quantity),
                 "subtotal": subtotal,
                 "item_type": item_type,
                 "is_rental": item_type == "rental",
@@ -161,25 +210,39 @@ def index():
 
 @app.route("/menu")
 def menu():
-    products = product_service.get_all_products()
-    cart_count = sum(int(quantity) for quantity in get_cart().values())
-    return render_template("menu.html", products=products, cart_count=cart_count)
+    cart = get_cart()
+    selected_item_type = normalize_menu_type(request.args.get("type"))
+    menu_products = build_menu_products(product_service.get_all_products(), cart)
+    products = [
+        product
+        for product in menu_products
+        if product.get("item_type") == selected_item_type
+    ]
+    cart_count = sum(int(quantity) for quantity in cart.values())
+    return render_template(
+        "menu.html",
+        products=products,
+        cart_count=cart_count,
+        selected_item_type=selected_item_type,
+        menu_tabs=build_menu_tabs(menu_products, selected_item_type),
+    )
 
 
 @app.route("/cart/add", methods=["POST"])
 def add_to_cart():
     product_id = request.form.get("product_id")
     quantity = max(1, parse_int(request.form.get("quantity"), default=1))
+    selected_item_type = normalize_menu_type(request.form.get("menu_type"))
     product = product_service.get_product_by_id(product_id)
 
     if product is None:
         flash("존재하지 않는 물품입니다.", "error")
-        return redirect(url_for("menu"))
+        return redirect(url_for("menu", type=selected_item_type))
 
     stock = int(product["stock"])
     if stock <= 0:
         flash(f"{product['name']} 물품은 품절입니다.", "error")
-        return redirect(url_for("menu"))
+        return redirect(url_for("menu", type=selected_item_type))
 
     cart = get_cart()
     current_quantity = int(cart.get(str(product_id), 0))
@@ -194,7 +257,7 @@ def add_to_cart():
 
     save_cart(cart)
     session.pop("rental_student_tagged", None)
-    return redirect(url_for("menu"))
+    return redirect(url_for("menu", type=selected_item_type))
 
 
 @app.route("/cart")

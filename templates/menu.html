@@ -4,51 +4,75 @@
 <section class="section-heading">
   <div>
     <p class="eyebrow">학습 도구 선택</p>
-    <h1>필요한 물품을 대여하거나 구매하세요</h1>
+    <h1>{{ "학생증으로 대여할 물품을 선택하세요" if selected_item_type == "rental" else "바로 구매할 물품을 선택하세요" }}</h1>
   </div>
   <a class="button button-primary" href="{{ url_for('cart') }}">장바구니 {{ cart_count }}개</a>
 </section>
 
-<section class="product-grid">
-  {% for product in products %}
-    {% set sold_out = product.stock <= 0 %}
-    <article class="product-card {% if sold_out %}is-sold-out{% endif %} {% if product.is_popular %}is-popular{% endif %}">
-      {% if product.is_popular %}
-        <div class="popular-ribbon">인기 물품</div>
-      {% endif %}
-      <div class="product-visual">
-        {% if product.image %}
-          <img src="{{ url_for('static', filename='images/' ~ product.image) }}" alt="{{ product.name }}">
-        {% else %}
-          <span>{{ product.name[:2] }}</span>
-        {% endif %}
-      </div>
-      <div class="product-info">
-        <span class="category">{{ product.category }}</span>
-        <h2>{{ product.name }}</h2>
-        <p class="price">{{ product.price|won }}</p>
-        <p class="payment-kind">
-          {{ "반납 시 반환되는 보증금" if product.item_type == "rental" else "구매 가격" }}
-        </p>
-        <p class="stock {% if sold_out %}stock-out{% endif %}">
-          {% if sold_out %}
-            품절
-          {% else %}
-            재고 {{ product.stock }}개
-          {% endif %}
-        </p>
-      </div>
-      <form class="product-action" action="{{ url_for('add_to_cart') }}" method="post">
-        <input type="hidden" name="product_id" value="{{ product.id }}">
-        <label>
-          수량
-          <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" {% if sold_out %}disabled{% endif %}>
-        </label>
-        <button class="button button-primary" type="submit" {% if sold_out %}disabled{% endif %}>
-          선택
-        </button>
-      </form>
-    </article>
+<nav class="menu-tabs" aria-label="대여 또는 구매 선택">
+  {% for tab in menu_tabs %}
+    <a
+      class="menu-tab {% if tab.active %}is-active{% endif %}"
+      href="{{ url_for('menu', type=tab.key) }}"
+      {% if tab.active %}aria-current="page"{% endif %}
+    >
+      <span>{{ tab.label }}</span>
+      <small>{{ tab.count }}개 품목</small>
+    </a>
   {% endfor %}
-</section>
+</nav>
+
+{% if products %}
+  <section class="product-grid">
+    {% for product in products %}
+      {% set sold_out = product.display_stock <= 0 %}
+      <article class="product-card {% if sold_out %}is-sold-out{% endif %} {% if product.is_popular %}is-popular{% endif %}">
+        {% if product.is_popular %}
+          <div class="popular-ribbon">인기 물품</div>
+        {% endif %}
+        <div class="product-visual">
+          {% if product.image %}
+            <img src="{{ url_for('static', filename='images/' ~ product.image) }}" alt="{{ product.name }}">
+          {% else %}
+            <span>{{ product.name[:2] }}</span>
+          {% endif %}
+        </div>
+        <div class="product-info">
+          <span class="category">{{ product.category }}</span>
+          <h2>{{ product.name }}</h2>
+          <p class="price">{{ product.price|won }}</p>
+          <p class="payment-kind">
+            {{ "반납 시 반환되는 보증금" if product.item_type == "rental" else "구매 가격" }}
+          </p>
+          <p class="stock {% if sold_out %}stock-out{% endif %}">
+            {% if sold_out %}
+              품절
+            {% else %}
+              재고 {{ product.display_stock }}개
+            {% endif %}
+          </p>
+          {% if product.cart_quantity > 0 %}
+            <p class="stock">장바구니 {{ product.cart_quantity }}개 반영</p>
+          {% endif %}
+        </div>
+        <form class="product-action" action="{{ url_for('add_to_cart') }}" method="post">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <input type="hidden" name="menu_type" value="{{ selected_item_type }}">
+          <label>
+            수량
+            <input type="number" name="quantity" value="1" min="1" max="{{ product.display_stock }}" {% if sold_out %}disabled{% endif %}>
+          </label>
+          <button class="button button-primary" type="submit" {% if sold_out %}disabled{% endif %}>
+            선택
+          </button>
+        </form>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section class="empty-state">
+    <h2>등록된 물품이 없습니다</h2>
+    <p>관리자 페이지에서 물품을 추가하거나 수정할 수 있습니다.</p>
+  </section>
+{% endif %}
 {% endblock %}

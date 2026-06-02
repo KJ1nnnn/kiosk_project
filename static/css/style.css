@@ -293,6 +293,51 @@ button:disabled {
   line-height: 1.2;
 }
 
+.menu-tabs {
+  display: flex;
+  align-items: end;
+  margin: -6px 0 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-tab {
+  position: relative;
+  min-width: 172px;
+  display: grid;
+  gap: 4px;
+  padding: 14px 22px 12px;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: #e8f2ff;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.menu-tab + .menu-tab {
+  margin-left: -1px;
+}
+
+.menu-tab span {
+  font-size: 18px;
+}
+
+.menu-tab small {
+  color: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.menu-tab.is-active {
+  z-index: 1;
+  padding-top: 11px;
+  border-top: 4px solid var(--primary);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 -8px 20px rgba(37, 99, 235, 0.08);
+  transform: translateY(1px);
+}
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
@@ -938,6 +983,17 @@ th {
 
   .quantity-form label {
     width: 100%;
+  }
+
+  .menu-tabs {
+    overflow-x: auto;
+  }
+
+  .menu-tab {
+    flex: 1;
+    min-width: 140px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .line-total {

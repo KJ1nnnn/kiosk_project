@@ -60,7 +60,7 @@
   </article>
 
   <div class="result-actions">
-    <a class="button button-primary button-large" href="{{ url_for('menu') }}">새 이용 시작</a>
+    <a class="button button-primary button-large" href="{{ url_for('menu') }}">처음으로</a>
     {% if not result['success'] %}
       <a class="button button-secondary button-large" href="{{ url_for('payment') }}">다시 결제</a>
     {% endif %}
