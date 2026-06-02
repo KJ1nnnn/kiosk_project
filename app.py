@@ -11,6 +11,10 @@ MENU_TAB_LABELS = {
     "rental": "대여",
     "purchase": "구매",
 }
+ADMIN_PRODUCT_TYPE_ORDER = {
+    "purchase": 0,
+    "rental": 1,
+}
 
 init_db()
 
@@ -105,6 +109,15 @@ def build_menu_products(products, cart=None):
         menu_products.append(product)
 
     return menu_products
+
+
+def sort_admin_products(products):
+    return sorted(
+        products,
+        key=lambda product: ADMIN_PRODUCT_TYPE_ORDER.get(
+            product.get("item_type"), len(ADMIN_PRODUCT_TYPE_ORDER)
+        ),
+    )
 
 
 def build_cart_items(conn=None):
@@ -517,7 +530,7 @@ def admin():
     if not is_admin_authenticated():
         return redirect(url_for("admin_login", next=request.path))
 
-    products = product_service.get_all_products()
+    products = sort_admin_products(product_service.get_all_products())
     orders = order_service.get_all_orders()
     cash_box = change_service.get_cash_box()
     hourly_order_stats = with_bar_percentages(
