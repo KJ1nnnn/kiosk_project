@@ -26,7 +26,7 @@ DEFAULT_PRODUCTS = [
         "price": 5000,
         "stock": 8,
         "item_type": "rental",
-        "image": "",
+        "image": "products/wireless-mouse.jpg",
     },
     {
         "name": "무선 키보드",
@@ -34,7 +34,7 @@ DEFAULT_PRODUCTS = [
         "price": 7000,
         "stock": 6,
         "item_type": "rental",
-        "image": "",
+        "image": "products/wireless-keyboard.jpg",
     },
     {
         "name": "독서대",
@@ -42,7 +42,7 @@ DEFAULT_PRODUCTS = [
         "price": 3000,
         "stock": 10,
         "item_type": "rental",
-        "image": "",
+        "image": "products/book-stand.webp",
     },
     {
         "name": "담요",
@@ -50,7 +50,7 @@ DEFAULT_PRODUCTS = [
         "price": 4000,
         "stock": 12,
         "item_type": "rental",
-        "image": "",
+        "image": "products/blanket.jpg",
     },
     {
         "name": "c타입 충전기",
@@ -58,7 +58,7 @@ DEFAULT_PRODUCTS = [
         "price": 5000,
         "stock": 10,
         "item_type": "rental",
-        "image": "",
+        "image": "products/c-type-charger.jpg",
     },
     {
         "name": "일회용 칫솔 세트",
@@ -66,7 +66,7 @@ DEFAULT_PRODUCTS = [
         "price": 1200,
         "stock": 30,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/toothbrush-set.jpg",
     },
     {
         "name": "필기구 세트",
@@ -74,7 +74,7 @@ DEFAULT_PRODUCTS = [
         "price": 2500,
         "stock": 25,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/stationery-set.jpg",
     },
     {
         "name": "인공눈물",
@@ -82,7 +82,7 @@ DEFAULT_PRODUCTS = [
         "price": 1500,
         "stock": 20,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/artificial-tears.jpg",
     },
     {
         "name": "졸음껌",
@@ -90,7 +90,7 @@ DEFAULT_PRODUCTS = [
         "price": 1000,
         "stock": 30,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/sleepy-gum.jpg",
     },
     {
         "name": "머리끈",
@@ -98,7 +98,7 @@ DEFAULT_PRODUCTS = [
         "price": 800,
         "stock": 30,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/hair-tie.jpg",
     },
     {
         "name": "에너지 드링크",
@@ -106,7 +106,7 @@ DEFAULT_PRODUCTS = [
         "price": 2500,
         "stock": 20,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/energy-drink.webp",
     },
     {
         "name": "포스트잇",
@@ -114,7 +114,7 @@ DEFAULT_PRODUCTS = [
         "price": 1200,
         "stock": 25,
         "item_type": "purchase",
-        "image": "",
+        "image": "products/post-it.jpg",
     },
 ]
 

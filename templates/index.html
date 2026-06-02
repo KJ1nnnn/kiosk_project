@@ -3,7 +3,6 @@
 {% block content %}
 <section class="start-screen">
   <div class="start-copy">
-    <p class="eyebrow">학교 건물 1층</p>
     <h1>학생을 위한 학습 도구 대여·구매 키오스크</h1>
     <p>
       학생증을 제시하고 무선 마우스, 키보드, 독서대, 담요, c타입 충전기를 대여하세요.
@@ -11,7 +10,6 @@
     <div class="start-actions">
       <a class="button button-primary button-large" href="{{ url_for('menu') }}">대여·구매 시작</a>
       <a class="button button-secondary button-large" href="{{ url_for('return_item') }}">물품 반납</a>
-      <a class="button button-secondary button-large" href="{{ url_for('admin') }}">관리자 화면</a>
     </div>
   </div>
   <div class="kiosk-preview" aria-label="키오스크 안내 패널">
@@ -28,5 +26,15 @@
     </div>
     <div class="preview-total">대여 보증금은 반납 시 반환됩니다</div>
   </div>
+  <footer class="home-footer" aria-label="홈 화면 하단 정보">
+    <div>
+      <span>대여·구매</span>
+      <span>물품 반납</span>
+      <span>장바구니</span>
+      <span>보증금</span>
+      <span>결제</span>
+    </div>
+    <strong>Powered by Python Flask</strong>
+  </footer>
 </section>
 {% endblock %}

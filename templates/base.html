@@ -7,14 +7,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
   </head>
-  <body>
-    <header class="topbar">
+  <body class="{% if request.endpoint == 'index' %}home-body{% endif %}">
+    <header class="topbar {% if request.endpoint == 'index' %}topbar-home{% endif %}">
       <a class="brand" href="{{ url_for('index') }}">
-        <span class="brand-mark">K</span>
-        <span>
-          <strong>Campus Tool Kiosk</strong>
-          <small>학습 도구 대여·구매</small>
-        </span>
+        <img class="brand-banner" src="{{ url_for('static', filename='images/banner.png') }}" alt="Campus Tool Kiosk">
       </a>
       <nav class="nav">
         <a href="{{ url_for('menu') }}">대여·구매</a>
@@ -34,7 +30,7 @@
       {% endif %}
     {% endwith %}
 
-    <main class="page">
+    <main class="page {% if request.endpoint == 'index' %}home-page{% endif %}">
       {% block content %}{% endblock %}
     </main>
   </body>
