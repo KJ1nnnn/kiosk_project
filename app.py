@@ -1,6 +1,6 @@
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 
-from database import init_db, get_db_connection
+from database import MONEY_UNITS, init_db, get_db_connection
 from services import change_service, order_service, payment_service, product_service
 
 
@@ -599,6 +599,29 @@ def admin_product_update():
         flash("물품 정보를 수정했습니다.", "success")
     else:
         flash("물품 수정에 실패했습니다.", "error")
+
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/cash/update", methods=["POST"])
+def admin_cash_update():
+    if not is_admin_authenticated():
+        flash("관리자 비밀번호를 먼저 입력하세요.", "warning")
+        return redirect(url_for("admin_login", next=url_for("admin")))
+
+    cash_counts = {}
+    for money in MONEY_UNITS:
+        count = parse_int(request.form.get(f"cash_{money}"), default=-1)
+        if count < 0:
+            flash("현금 수량은 0 이상의 숫자로 입력하세요.", "error")
+            return redirect(url_for("admin"))
+        cash_counts[money] = count
+
+    updated = change_service.update_cash_box_counts(cash_counts)
+    if updated:
+        flash("키오스크 보유 현금 수량을 수정했습니다.", "success")
+    else:
+        flash("현금 수량 수정에 실패했습니다.", "error")
 
     return redirect(url_for("admin"))
 

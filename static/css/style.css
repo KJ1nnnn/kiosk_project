@@ -924,7 +924,8 @@ th {
   gap: 10px;
 }
 
-.cash-grid div {
+.cash-grid div,
+.cash-edit-card {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -932,7 +933,8 @@ th {
 }
 
 .cash-grid span,
-.cash-grid strong {
+.cash-grid strong,
+.cash-edit-card input {
   display: block;
 }
 
@@ -944,6 +946,25 @@ th {
 .cash-grid strong {
   margin-top: 6px;
   font-size: 20px;
+}
+
+.cash-edit-form {
+  display: grid;
+  gap: 14px;
+}
+
+.cash-edit-card {
+  gap: 8px;
+}
+
+.cash-edit-card input {
+  margin-top: 8px;
+  min-height: 44px;
+}
+
+.cash-edit-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .muted {

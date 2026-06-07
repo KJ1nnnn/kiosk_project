@@ -80,6 +80,46 @@ def get_cash_box(conn=None):
     return cash_box
 
 
+def update_cash_box_counts(cash_counts, conn=None):
+    owns_connection = conn is None
+    conn = conn or get_db_connection()
+    normalized_counts = {}
+
+    try:
+        for money in MONEY_UNITS:
+            count = int(cash_counts.get(money, cash_counts.get(str(money), 0)))
+            if count < 0:
+                if owns_connection:
+                    conn.close()
+                return False
+            normalized_counts[money] = count
+    except (TypeError, ValueError):
+        if owns_connection:
+            conn.close()
+        return False
+
+    for money, count in normalized_counts.items():
+        current = conn.execute(
+            "SELECT count FROM cash_box WHERE money_unit = ?", (int(money),)
+        ).fetchone()
+        if current is None:
+            conn.execute(
+                "INSERT INTO cash_box (money_unit, count) VALUES (?, ?)",
+                (int(money), int(count)),
+            )
+        else:
+            conn.execute(
+                "UPDATE cash_box SET count = ? WHERE money_unit = ?",
+                (int(count), int(money)),
+            )
+
+    if owns_connection:
+        conn.commit()
+        conn.close()
+
+    return True
+
+
 def record_inserted_cash(inserted_cash_units, conn=None):
     owns_connection = conn is None
     conn = conn or get_db_connection()

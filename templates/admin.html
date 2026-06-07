@@ -142,13 +142,18 @@
 
 <section class="admin-section">
   <h2>키오스크 보유 현금</h2>
-  <div class="cash-grid">
-    {% for unit, count in cash_box.items() %}
-      <div>
-        <span>{{ unit|won }}</span>
-        <strong>{{ count }}개</strong>
-      </div>
-    {% endfor %}
-  </div>
+  <form class="cash-edit-form" action="{{ url_for('admin_cash_update') }}" method="post">
+    <div class="cash-grid">
+      {% for unit, count in cash_box.items() %}
+        <label class="cash-edit-card">
+          <span>{{ unit|won }}</span>
+          <input type="number" name="cash_{{ unit }}" min="0" step="1" value="{{ count }}" aria-label="{{ unit|won }} 보유 수량">
+        </label>
+      {% endfor %}
+    </div>
+    <div class="cash-edit-actions">
+      <button class="button button-secondary" type="submit">현금 수량 저장</button>
+    </div>
+  </form>
 </section>
 {% endblock %}

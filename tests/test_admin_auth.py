@@ -1,4 +1,5 @@
 from app import app, sort_admin_products
+from database import MONEY_UNITS
 
 
 def test_admin_page_redirects_to_login_without_password():
@@ -47,6 +48,44 @@ def test_admin_product_update_requires_password():
 
     assert response.status_code == 302
     assert "/admin/login" in response.headers["Location"]
+
+
+def test_admin_cash_update_requires_password():
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.post("/admin/cash/update")
+
+    assert response.status_code == 302
+    assert "/admin/login" in response.headers["Location"]
+
+
+def test_admin_cash_update_passes_cash_counts_to_service(monkeypatch):
+    app.config["TESTING"] = True
+    captured_counts = {}
+
+    def fake_update_cash_box_counts(cash_counts):
+        captured_counts.update(cash_counts)
+        return True
+
+    monkeypatch.setattr(
+        "app.change_service.update_cash_box_counts", fake_update_cash_box_counts
+    )
+    data = {f"cash_{money}": "2" for money in MONEY_UNITS}
+
+    with app.test_client() as client:
+        with client.session_transaction() as session:
+            session["admin_authenticated"] = True
+
+        response = client.post(
+            "/admin/cash/update",
+            data=data,
+            follow_redirects=True,
+        )
+
+    assert response.status_code == 200
+    assert captured_counts == {money: 2 for money in MONEY_UNITS}
+    assert "키오스크 보유 현금 수량을 수정했습니다.".encode() in response.data
 
 
 def test_admin_product_order_places_purchase_above_rental():
